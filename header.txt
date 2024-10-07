@@ -3,9 +3,23 @@
 // @author       Mint Cider
 // @version      0.1.0
 // @description  为海豹添加最终物语规则。详细使用说明见项目主页 README。
-// @timestamp    1728294492
+// @timestamp    1728452500
 // @license      MIT
 // @homepageURL  https://github.com/MintCider/seal-fu
 // @updateUrl    https://github.com/MintCider/seal-fu/releases/latest/download/seal-fu.js
-// @sealVersion  1.2.0
+// @sealVersion  >=1.2.0-0
 // ==/UserScript==
+
+// # v0.1.0 更新日志
+//
+// ## 功能
+//
+// - 适配海豹核心 `.st` 命令，可以通过 `.st` 设定人物卡属性。
+// - 增加 `.rc` 命令用于检定掷骰。
+// - 增加 `.ri` 命令用于先攻掷骰。
+// - 增加 `.buff` 命令用于附加状态效果。
+// - 增加 `.ds` 命令用于临时修改属性骰大小。
+// - 增加 `.bond` 命令用于记录牵绊。
+// - 增加 `.clk` 命令用于记录命刻。
+//
+// 请参考 README 或帮助文本（`.<command> help`）使用以上命令。
