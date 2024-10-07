@@ -40,14 +40,11 @@
 
     "lib": ["es2017", "DOM"],
     "typeRoots": [
-      "../UnityProject/Assets/Vendors/Puerts/Typing",
-      "../UnityProject/Assets/Gen/Typing",
-      // "../Project/Assets/Resources/FairyGUI-dist/main",
       "./node_modules/@types",
       "types"
     ]
   },
-  "include": ["src/**/*.ts", "types/seal.d.ts", "types/seal.d.ts"],
+  "include": ["src/**/*.ts", "types/seal.d.ts"],
   "exclude": ["node_modules/**"],
   "compileOnSave": false
 }

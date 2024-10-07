@@ -1,4 +1,4 @@
-var filename = 'sealdice-js-ext.js'
+var filename = 'seal-fu.js'
 
 module.exports = {
   dev: {
@@ -28,6 +28,7 @@ module.exports = {
     supported: {
       'async-await': true,
     },
+    charset: 'utf8',
   },
   build: {
     // Bundles JavaScript.
@@ -40,7 +41,7 @@ module.exports = {
     // Uses incremental compilation (see `chokidar.on`).
     // incremental: true,
     // Removes whitespace, etc. depending on `NODE_ENV=...`.
-    minify: true,
+    minify: false,
     // Bundles JavaScript to (see `entryPoints`).
     outfile: "dist/" + filename,
     // Others
@@ -56,5 +57,6 @@ module.exports = {
     supported: {
       'async-await': true,
     },
+    charset: 'utf8',
   }
 }
