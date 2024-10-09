@@ -5,13 +5,48 @@ export const attributeEffects = {
   "意志": ["动摇", "中毒"],
 }
 
-export const numToChinese = {1: "一", 2: "二", 3: "三", 4: "四", 5: "五", 6: "六"}
+export const attributeAlias = {
+  "dex": "灵巧",
+  "ins": "洞察",
+  "mig": "力量",
+  "wlp": "意志"
+}
 
-export const emoToKey = {"赞赏": "赞赏", "自卑": "赞赏", "忠诚": "忠诚", "怀疑": "忠诚", "喜爱": "喜爱", "仇恨": "喜爱"}
+export const numToChinese = {
+  1: "一",
+  2: "二",
+  3: "三",
+  4: "四",
+  5: "五",
+  6: "六"
+}
 
-export const emoToValue = {"赞赏": 1, "自卑": -1, "忠诚": 1, "怀疑": -1, "喜爱": 1, "仇恨": -1}
+export const emoToKey = {
+  "赞赏": "赞赏",
+  "自卑": "赞赏",
+  "忠诚": "忠诚",
+  "怀疑": "忠诚",
+  "喜爱": "喜爱",
+  "仇恨": "喜爱"
+}
 
-export const negEmo = {"赞赏": "自卑", "自卑": "赞赏", "忠诚": "怀疑", "怀疑": "忠诚", "喜爱": "仇恨", "仇恨": "喜爱"}
+export const emoToValue = {
+  "赞赏": 1,
+  "自卑": -1,
+  "忠诚": 1,
+  "怀疑": -1,
+  "喜爱": 1,
+  "仇恨": -1
+}
+
+export const negEmo = {
+  "赞赏": "自卑",
+  "自卑": "赞赏",
+  "忠诚": "怀疑",
+  "怀疑": "忠诚",
+  "喜爱": "仇恨",
+  "仇恨": "喜爱"
+}
 
 // function generateBondExpr(index: number): string {
 //   if (!(index in [1, 2, 3, 4, 5, 6])) {
@@ -80,8 +115,8 @@ export const ruleTemplate = {
   "name": "fu",
   "fullName": "最终物语",
   "authors": ["Mint Cider"],
-  "version": "0.1.0",
-  "updatedTime": "2024.10.07",
+  "version": "0.1.1",
+  "updatedTime": "2024.10.09",
   "templateVer": "1.0",
 
   // .set 相关内容，使用.set fish开启，切6面骰，并提示enableTip中的内容
@@ -174,6 +209,17 @@ export const ruleTemplate = {
   // "textMapHelpInfo": null
 }
 
+export const fuHelp = "最终物语规则相关指令：\n\n" +
+  ".set fu：切换到最终物语规则\n" +
+  ".st：适配了人物卡管理。相关属性参见 README\n" +
+  ".sn fu/fuS：适配了自动群名片，提供长短两种格式\n" +
+  ".rc：检定指令\n" +
+  ".ri：先攻指令\n" +
+  ".buff：状态效果指令\n" +
+  ".ds：属性骰临时调整指令\n" +
+  ".bond：牵绊指令\n" +
+  ".clk：命刻指令"
+
 export const rcHelp = "最终物语检定指令：\n\n" +
   ".rc <属性 1>+<属性 2>+<修正值>\n\n" +
   "支持的属性为：灵巧、洞察、力量、意志、dex、ins、mig、wlp，不区分大小写\n" +
@@ -224,13 +270,6 @@ export const clkHelp = "最终物语命刻指令：\n\n" +
   "支持的大小为：正整数\n" +
   "支持的进度为：非负整数\n" +
   "支持的进度变化为：整数"
-
-export const attributeAlias = {
-  "dex": "灵巧",
-  "ins": "洞察",
-  "mig": "力量",
-  "wlp": "意志"
-}
 
 export type Clock = {
   name: string;

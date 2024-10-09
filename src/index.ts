@@ -4,8 +4,13 @@ import {
   buffHelp,
   clkHelp,
   Clock,
-  dsHelp, emoToKey, emoToValue,
-  generateAttributeStatusExpr, negEmo, numToChinese,
+  dsHelp,
+  emoToKey,
+  emoToValue,
+  fuHelp,
+  generateAttributeStatusExpr,
+  negEmo,
+  numToChinese,
   rcHelp,
   riHelp,
   ruleTemplate
@@ -18,6 +23,12 @@ function registerTemplate() {
   } catch (e) {
     console.log(e);
   }
+}
+
+// 帮助指令
+function commandFu(ctx: seal.MsgContext, msg: seal.Message, _: seal.CmdArgs): seal.CmdExecuteResult {
+  seal.replyToSender(ctx, msg, fuHelp);
+  return seal.ext.newCmdExecuteResult(true);
 }
 
 // 检定
@@ -249,25 +260,25 @@ function commandBond(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
     case "del": {
       const target = cmdArgs.getArgN(2);
       let index = 0;
-      if(target.match(/^[1-6]$/)) {
-        if(Number(target) > bondNum) {
+      if (target.match(/^[1-6]$/)) {
+        if (Number(target) > bondNum) {
           seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `没有第${target}条牵绊`);
           return seal.ext.newCmdExecuteResult(true);
         }
         index = Number(target)
       }
       for (let i = 1; i <= bondNum; i++) {
-        if(seal.vars.strGet(ctx, `牵绊${numToChinese[i]}`)[0] === target) {
+        if (seal.vars.strGet(ctx, `牵绊${numToChinese[i]}`)[0] === target) {
           index = i;
           break;
         }
       }
-      if(index === 0) {
+      if (index === 0) {
         seal.replyToSender(ctx, msg, `找不到要遗忘的目标牵绊：${target}`);
         return seal.ext.newCmdExecuteResult(true);
       }
       removeBondByIndex(ctx, index);
-      if(target.match(/^[1-6]$/)) {
+      if (target.match(/^[1-6]$/)) {
         seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `不再有第${target}条牵绊`);
       } else {
         seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `与<${target}>不再有牵绊`);
@@ -290,20 +301,20 @@ function commandBond(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
       const target = cmdArgs.getArgN(3);
       const emo = cmdArgs.getArgN(4);
       let index = 0;
-      if(target.match(/^[1-6]$/)) {
-        if(Number(target) > bondNum) {
+      if (target.match(/^[1-6]$/)) {
+        if (Number(target) > bondNum) {
           seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `没有第${target}条牵绊`);
           return seal.ext.newCmdExecuteResult(true);
         }
         index = Number(target)
       }
       for (let i = 1; i <= bondNum; i++) {
-        if(seal.vars.strGet(ctx, `牵绊${numToChinese[i]}`)[0] === target) {
+        if (seal.vars.strGet(ctx, `牵绊${numToChinese[i]}`)[0] === target) {
           index = i;
           break;
         }
       }
-      if(index === 0) {
+      if (index === 0) {
         seal.replyToSender(ctx, msg, `找不到目标牵绊：${target}`);
         return seal.ext.newCmdExecuteResult(true);
       }
@@ -313,19 +324,19 @@ function commandBond(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
       }
       switch (option) {
         case "add": {
-          if(seal.vars.intGet(ctx, `牵绊${numToChinese[index]}${emoToKey[emo]}`)[0] === 0) {
+          if (seal.vars.intGet(ctx, `牵绊${numToChinese[index]}${emoToKey[emo]}`)[0] === 0) {
             seal.vars.intSet(ctx, `牵绊${numToChinese[index]}${emoToKey[emo]}`, emoToValue[emo]);
             seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `与<` + seal.vars.strGet(ctx, `牵绊${numToChinese[index]}`)[0] + `>的牵绊增加了${emo}情感`);
             return seal.ext.newCmdExecuteResult(true);
           } else {
             seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `与<` + seal.vars.strGet(ctx, `牵绊${numToChinese[index]}`)[0] + `>的牵绊已有` +
-            `${seal.vars.intGet(ctx, `牵绊${numToChinese[index]}${emoToKey[emo]}`)[0] === emoToValue[emo] ? emo : negEmo[emo]}情感，` +
-            `不能再增加${emo}情感`);
+              `${seal.vars.intGet(ctx, `牵绊${numToChinese[index]}${emoToKey[emo]}`)[0] === emoToValue[emo] ? emo : negEmo[emo]}情感，` +
+              `不能再增加${emo}情感`);
             return seal.ext.newCmdExecuteResult(true);
           }
         }
         case "del": {
-          if(seal.vars.intGet(ctx, `牵绊${numToChinese[index]}${emoToKey[emo]}`)[0] === emoToValue[emo]) {
+          if (seal.vars.intGet(ctx, `牵绊${numToChinese[index]}${emoToKey[emo]}`)[0] === emoToValue[emo]) {
             seal.vars.intSet(ctx, `牵绊${numToChinese[index]}${emoToKey[emo]}`, 0);
             seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `与<` + seal.vars.strGet(ctx, `牵绊${numToChinese[index]}`)[0] + `>的牵绊不再有${emo}情感`);
             return seal.ext.newCmdExecuteResult(true);
@@ -347,20 +358,35 @@ function commandBond(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
         let admiration = "";
         let loyalty = "";
         let affection = "";
-        switch(seal.vars.intGet(ctx, `牵绊${numToChinese[i]}赞赏`)[0]) {
-          case 1: admiration = "赞赏"; break;
-          case -1: admiration = "自卑"; break;
-          default: admiration = "";
+        switch (seal.vars.intGet(ctx, `牵绊${numToChinese[i]}赞赏`)[0]) {
+          case 1:
+            admiration = "赞赏";
+            break;
+          case -1:
+            admiration = "自卑";
+            break;
+          default:
+            admiration = "";
         }
-        switch(seal.vars.intGet(ctx, `牵绊${numToChinese[i]}忠诚`)[0]) {
-          case 1: loyalty = "忠诚"; break;
-          case -1: loyalty = "怀疑"; break;
-          default: loyalty = "";
+        switch (seal.vars.intGet(ctx, `牵绊${numToChinese[i]}忠诚`)[0]) {
+          case 1:
+            loyalty = "忠诚";
+            break;
+          case -1:
+            loyalty = "怀疑";
+            break;
+          default:
+            loyalty = "";
         }
-        switch(seal.vars.intGet(ctx, `牵绊${numToChinese[i]}喜爱`)[0]) {
-          case 1: affection = "喜爱"; break;
-          case -1: affection = "仇恨"; break;
-          default: affection = "";
+        switch (seal.vars.intGet(ctx, `牵绊${numToChinese[i]}喜爱`)[0]) {
+          case 1:
+            affection = "喜爱";
+            break;
+          case -1:
+            affection = "仇恨";
+            break;
+          default:
+            affection = "";
         }
         if (affection && (admiration || loyalty)) {
           affection = "与" + affection;
@@ -485,7 +511,8 @@ function main() {
   // 注册扩展
   let ext = seal.ext.find("seal-fu");
   if (!ext) {
-    ext = seal.ext.new("seal-fu", "Mint Cider", "0.1.0");
+    ext = seal.ext.new("seal-fu", "Mint Cider", "0.1.1");
+    registerCommand(ext, "fu", fuHelp, commandFu);
     registerCommand(ext, "rc", rcHelp, commandRc);
     registerCommand(ext, "ri", riHelp, commandRi);
     registerCommand(ext, "buff", buffHelp, commandBuff);
