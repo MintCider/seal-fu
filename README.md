@@ -11,7 +11,7 @@
 
 ## 安装
 
-在本项目 Release 页面中，直接下载最新编译的 JS 文件，或 [点击这里](https://github.com/MintCider/seal-fu/releases/latest/download/seal-fu.js) 下载。随后上传到海豹核心即可。
+在本项目 Release 页面中，直接下载最新编译的 JS 文件，或 [点击这里](https://github.com/MintCider/seal-fu/releases/latest/download/seal-fu.js) 下载。随后上传到海豹核心，即可通过 `.set fu` 切换到最终物语规则。
 
 ## 命令
 
