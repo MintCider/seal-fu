@@ -459,7 +459,7 @@ declare namespace seal {
      * @param ext 扩展对象
      * @param key 配置项名称
      */
-    getStringConfig(ext: ExtInfo,key: string): ConfigItem;
+    getStringConfig(ext: ExtInfo,key: string): string;
     /**
      * 获取指定名称的整型配置项对象
      * @param ext 扩展对象
