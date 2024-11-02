@@ -3,6 +3,13 @@
 > [!WARNING]  
 > 由于大量术语发生变动，导致人物卡的数据存储格式改变，从 `v0.2.0` 之前版本升级而来的话，会出现数据不匹配。可以通过 `.st clr` 清空旧人物卡属性，参考最新术语翻译，重新创建人物卡。
 
+> [!WARNING]  
+> 最终物语插件使用 `.rc` 作为检定指令，由于海豹核心相关问题，会导致重载插件/重启海豹核心后，在 COC/DND 规则下，使用 `.rc` 时触发最终物语检定指令的问题。
+>
+> 可以使用 `.set coc/dnd` 重新激活 COC/DND 规则，或者使用 `.ra` 指令进行 COC 检定以*缓解*此问题。
+>
+> 详见：MintCider/seal-fu#1、sealdice/sealdice-core#1106
+
 ## 介绍
 
 本插件工作于 [海豹骰点核心](https://github.com/sealdice/sealdice-core)，并基于其 [TS 模板库](https://github.com/sealdice/sealdice-js-ext-template) 实现。
