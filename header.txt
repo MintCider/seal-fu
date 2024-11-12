@@ -1,28 +1,20 @@
 // ==UserScript==
 // @name         最终物语规则
 // @author       Mint Cider
-// @version      0.2.0
+// @version      0.2.1
 // @description  为海豹添加最终物语规则。详细使用说明见项目主页 README。
-// @timestamp    1730568900
+// @timestamp    1731401700
 // @license      MIT
 // @homepageURL  https://github.com/MintCider/seal-fu
 // @updateUrl    https://github.com/MintCider/seal-fu/releases/latest/download/seal-fu.js
 // @sealVersion  >=1.2.0-0
 // ==/UserScript==
 
-// # v0.2.0 更新日志
+// # v0.2.1 更新日志
 // ## ⚠️注意⚠️
 //
 // 由于大量术语发生变动，导致人物卡的数据存储格式改变，从 `v0.2.0` 之前版本升级而来的话，会出现数据不匹配。可以通过 `.st clr` 清空旧人物卡属性，参考最新术语翻译，重新创建人物卡。
 //
 // ## 功能
 //
-// - 参考官方中文《快速开始》（Ver.0.11030），修改大量术语。
-// - 增加 `.eval` 命令用于重新核算属性骰（详见 README）。
-// - 增加配置项，允许修改属性别名，例如使用「灵巧」代替「敏捷」。**修改后必须重载插件！**（详见 README）。
-// - 增加自动群名片模版 `fuD`，示例：`角色名 HP50/50 MP50/50 D6 I10 M6 W10`
-//
-// ## 修复
-//
-// - 修复了从 DND 规则（`.set dnd`）切换到 FU 规则（`.set fu`）时，`.st` 出错的问题。
-// - 修复了自动群名片（`.sn fu/fuS`）中，物防显示不正确的问题。
+// - 增加 `.fu st` 命令用于向用户展示最终物语规则相关人物卡属性。

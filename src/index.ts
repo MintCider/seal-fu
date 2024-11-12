@@ -8,6 +8,7 @@ import {
   emoToValue,
   evalHelp,
   fuHelp,
+  fuStHelp,
   generateAttributeStatusExpr,
   negEmo,
   numToChinese,
@@ -47,8 +48,12 @@ function registerTemplate(ext: seal.ExtInfo) {
 }
 
 // 帮助指令
-function commandFu(ctx: seal.MsgContext, msg: seal.Message): seal.CmdExecuteResult {
-  seal.replyToSender(ctx, msg, fuHelp);
+function commandFu(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs): seal.CmdExecuteResult {
+  if (cmdArgs.getArgN(1) === "st") {
+    seal.replyToSender(ctx, msg, fuStHelp);
+  } else {
+    seal.replyToSender(ctx, msg, fuHelp);
+  }
   return seal.ext.newCmdExecuteResult(true);
 }
 
@@ -277,10 +282,10 @@ function commandDs(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
   return seal.ext.newCmdExecuteResult(true);
 }
 
-// 核算属性骰
+// 核算属性
 function commandEval(ctx: seal.MsgContext, msg: seal.Message): seal.CmdExecuteResult {
   reEvaluateAttributes(ctx);
-  seal.replyToSender(ctx, msg, "属性骰核算完毕");
+  seal.replyToSender(ctx, msg, "属性核算完毕");
   return seal.ext.newCmdExecuteResult(true);
 }
 
@@ -563,7 +568,7 @@ function main() {
   // 注册扩展
   let ext = seal.ext.find("seal-fu");
   if (!ext) {
-    ext = seal.ext.new("seal-fu", "Mint Cider", "0.2.0");
+    ext = seal.ext.new("seal-fu", "Mint Cider", "0.2.1");
     seal.ext.register(ext);
     registerConfigs(ext);
     registerTemplate(ext);

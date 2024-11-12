@@ -108,7 +108,7 @@ export const ruleTemplate = {
   "name": "fu",
   "fullName": "最终物语",
   "authors": ["Mint Cider"],
-  "version": "0.2.0",
+  "version": "0.2.1",
   "updatedTime": "2024.10.09",
   "templateVer": "1.0",
 
@@ -208,7 +208,7 @@ export const ruleTemplate = {
 
 export const fuHelp = "最终物语规则相关指令：\n\n" +
   ".set fu：切换到最终物语规则\n" +
-  ".st：适配了人物卡管理。相关属性参见 README\n" +
+  ".st：适配了人物卡管理。fu 相关属性参见 .fu st、命令使用方法参见 .st help\n" +
   ".sn fu/fuS/fuD：适配了自动群名片，提供长短两种格式，以及显示属性骰的格式\n" +
   ".rc：检定指令\n" +
   ".ri：先攻指令\n" +
@@ -217,6 +217,27 @@ export const fuHelp = "最终物语规则相关指令：\n\n" +
   ".eval：属性骰核算指令\n" +
   ".bond：羁绊指令\n" +
   ".clk：命刻指令"
+
+export const fuStHelp = "最终物语相关人物卡属性：\n\n" +
+  "属性名 | 默认属性别名\n" +
+  "生命值 | hp、hit point、hit points\n" +
+  "生命值上限 | hpmax\n" +
+  "精神值 | mp、mental point、mental points\n" +
+  "精神值上限 | mpmax\n" +
+  "物资点 | ip、inventory point、inventory points\n" +
+  "物资点上限 | ipmax\n" +
+  "物语点 | fp、fabula point、fabula points\n" +
+  "金币 | z、zenit\n" +
+  "先攻修改值 | im、initiative modifier\n" +
+  "物防 | pd、df、defense、物理防御\n" +
+  "魔防 | md、magical defense、魔法防御\n" +
+  "敏捷骰面初始值 | dex、dexterity、敏捷\n" +
+  "感知骰面初始值 | ins、insight、感知\n" +
+  "力量骰面初始值 | mig、might、力量\n" +
+  "意志骰面初始值 | wlp、willpower、意志\n\n" +
+  "在初始化人物卡时，可以使用任意属性别名进行属性设定，插件会自动将其转化为对应的属性。骰主可能会对属性别名进行调整。\n" +
+  ".st 命令本身的使用方式请参考 .st help"
+
 
 export const rcHelp = "最终物语检定指令：\n\n" +
   ".rc <属性 1>+<属性 2>+<修正值>\n\n" +
