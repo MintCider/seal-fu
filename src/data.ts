@@ -41,22 +41,7 @@ export const negEmo = {
   "憎恨": "喜爱"
 }
 
-// function generateBondExpr(index: number): string {
-//   if (!(index in [1, 2, 3, 4, 5, 6])) {
-//     return "";
-//   }
-//   const numStr = numToChinese[index];
-//   return "{" +
-//     `$t赞赏文本 = 牵绊${numStr}赞赏 == 1 ? '赞赏', 牵绊${numStr}赞赏 == -1 ? '自卑', 牵绊${numStr}赞赏 == 0 ? ''; ` +
-//     `$t忠诚文本 = 牵绊${numStr}忠诚 == 1 ? '忠诚', 牵绊${numStr}忠诚 == -1 ? '怀疑', 牵绊${numStr}忠诚 == 0 ? ''; ` +
-//     `$t喜爱文本 = 牵绊${numStr}喜爱 == 1 ? '喜爱', 牵绊${numStr}喜爱 == -1 ? '仇恨', 牵绊${numStr}喜爱 == 0 ? ''; ` +
-//     `if 牵绊${numStr}喜爱 && (牵绊${numStr}赞赏 || 牵绊${numStr}忠诚) {$t喜爱文本 = '与' + $t喜爱文本}; ` +
-//     `if 牵绊${numStr}忠诚 && 牵绊${numStr}赞赏 && 牵绊${numStr}喜爱 {$t忠诚文本 = '、' + $t忠诚文本}; ` +
-//     `if 牵绊${numStr}忠诚 && 牵绊${numStr}赞赏 && 牵绊${numStr}喜爱 == 0 {$t忠诚文本 = '与' + $t忠诚文本}` +
-//     `}{牵绊${numStr}}-{$t赞赏文本}{$t忠诚文本}{$t喜爱文本}`
-// }
-
-function generateAttributeExpr(attribute: string): string {
+function genAttrExpr(attribute: string): string {
   const effect1 = attributeEffects[attribute][0];
   const effect2 = attributeEffects[attribute][1];
   return "{" +
@@ -71,45 +56,12 @@ function generateAttributeExpr(attribute: string): string {
     "}"
 }
 
-export function generateAttributeStatusExpr(attribute: string): string {
-  const effect1 = attributeEffects[attribute][0];
-  const effect2 = attributeEffects[attribute][1];
-  return "{" +
-    `if ${effect1} {$t${effect1}文本 = '${effect1}'; $t${attribute}变动 = 1} ` +
-    `else {$t${effect1}文本 = ''}; ` +
-    `if ${effect2} {$t${effect2}文本 = $t${attribute}变动 ? '、${effect2}' : '${effect2}'; $t${attribute}变动 = 1} ` +
-    `else {$t${effect2}文本 = ''}; ` +
-    `if ${attribute}骰面增减值 {$t${attribute}增减文本 = ($t${attribute}变动 ? '、' : '') + (${attribute}骰面增减值 > 0 ? \`ds+{${attribute}骰面增减值}\` : \`ds{${attribute}骰面增减值}\`)} ` +
-    `else {$t${attribute}增减文本 = ''}; $t${attribute}变动 = 0; $t${attribute}附属文本 = $t${effect1}文本 + $t${effect2}文本 + $t${attribute}增减文本; ` +
-    `if $t${attribute}附属文本 {$t${attribute}附属文本 = \`（{$t${attribute}附属文本}）\`}; $t${attribute}附属文本` +
-    "}"
-}
-
-// const statusExpr = "{" +
-//   "if 缓慢 {$t缓慢文本 = '缓慢'; $t存在状态效果 = 1} " +
-//   "else {$t缓慢文本 = ''}; " +
-//   "if 眩晕 {$t眩晕文本 = $t存在状态效果 ? '+眩晕' : '眩晕'; $t存在状态效果 = 1} " +
-//   "else {$t眩晕文本 = ''}; " +
-//   "if 虚弱 {$t虚弱文本 = $t存在状态效果 ? '+虚弱' : '虚弱'; $t存在状态效果 = 1} " +
-//   "else {$t虚弱文本 = ''}; " +
-//   "if 动摇 {$t动摇文本 = $t存在状态效果 ? '+动摇' : '动摇'; $t存在状态效果 = 1} " +
-//   "else {$t动摇文本 = ''}; " +
-//   "if 愤怒 {$t愤怒文本 = $t存在状态效果 ? '+愤怒' : '愤怒'; $t存在状态效果 = 1} " +
-//   "else {$t愤怒文本 = ''}; " +
-//   "if 中毒 {$t中毒文本 = $t存在状态效果 ? '+中毒' : '中毒'; $t存在状态效果 = 1} " +
-//   "else {$t中毒文本 = ''}; " +
-//   "$t存在状态效果 = 0; " +
-//   "$t状态效果 = $t缓慢文本 + $t眩晕文本 + $t虚弱文本 + $t动摇文本 + $t愤怒文本 + $t中毒文本; " +
-//   "if $t状态效果 == '' {$t状态效果 = '无'}" +
-//   "}" +
-//   "{$t状态效果}"
-
 export const ruleTemplate = {
   "name": "fu",
   "fullName": "最终物语",
   "authors": ["Mint Cider"],
-  "version": "0.2.1",
-  "updatedTime": "2024.10.09",
+  "version": "0.2.2",
+  "updatedTime": "2024.12.03",
   "templateVer": "1.0",
 
   // .set 相关内容，使用.set fish开启，切6面骰，并提示enableTip中的内容
@@ -159,10 +111,10 @@ export const ruleTemplate = {
       "生命值": "{生命值}/{生命值上限}",
       "精神值": "{精神值}/{精神值上限}",
       "物资点": "{物资点}/{物资点上限}",
-      "敏捷": generateAttributeExpr("敏捷"),
-      "感知": generateAttributeExpr("感知"),
-      "力量": generateAttributeExpr("力量"),
-      "意志": generateAttributeExpr("意志"),
+      "敏捷": genAttrExpr("敏捷"),
+      "感知": genAttrExpr("感知"),
+      "力量": genAttrExpr("力量"),
+      "意志": genAttrExpr("意志"),
     },
   },
 

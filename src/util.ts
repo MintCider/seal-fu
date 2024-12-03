@@ -18,7 +18,7 @@ export function registerConfigs(ext: seal.ExtInfo) {
   seal.ext.registerStringConfig(ext, "意志骰面初始值别名", `["wlp", "willpower", "意志"]`);
 }
 
-export function generateAttributeAlias(ext: seal.ExtInfo): {
+export function genAttrAlias(ext: seal.ExtInfo): {
   [key: string]: string
 } {
   const result: { [key: string]: string } = {};
@@ -41,7 +41,7 @@ export function generateAttributeAlias(ext: seal.ExtInfo): {
   return result;
 }
 
-export function reEvaluateAttributes(ctx: seal.MsgContext) {
+export function reEvalAttr(ctx: seal.MsgContext) {
   for (const attribute of ["敏捷", "感知", "力量", "意志"]) {
     let dsMod = seal.vars.intGet(ctx, `${attribute}骰面增减值`)[0];
     if (seal.vars.intGet(ctx, attributeEffects[attribute][0])[0]) {
@@ -66,7 +66,7 @@ export function reEvaluateAttributes(ctx: seal.MsgContext) {
   seal.setPlayerGroupCard(ctx, ctx.player.autoSetNameTemplate);
 }
 
-export function removeBondByIndex(ctx: seal.MsgContext, index: number) {
+export function rmBondByIdx(ctx: seal.MsgContext, index: number) {
   const bondNum = seal.vars.intGet(ctx, "羁绊数")[0];
   for (let i = index; i <= bondNum - 1; i++) {
     seal.vars.strSet(ctx, `羁绊${numToChinese[i]}`, seal.vars.strGet(ctx, `羁绊${numToChinese[i + 1]}`)[0]);
@@ -80,4 +80,38 @@ export function removeBondByIndex(ctx: seal.MsgContext, index: number) {
   seal.vars.intSet(ctx, `羁绊${numToChinese[bondNum]}喜爱`, 0);
 
   seal.vars.intSet(ctx, "羁绊数", bondNum - 1);
+}
+
+export function rollDice(dice: number) {
+  return Math.floor(Math.random() * dice) + 1;
+}
+
+export function genAttrStatusExpr(ctx: seal.MsgContext, attribute: string): string {
+  const effect1 = attributeEffects[attribute][0];
+  const effect2 = attributeEffects[attribute][1];
+  const effect1Val = seal.vars.intGet(ctx, effect1)[0];
+  const effect2Val = seal.vars.intGet(ctx, effect2)[0];
+  const dsMod = seal.vars.intGet(ctx, `${attribute}骰面增减值`)[0];
+  let effect1Text: string, effect2Text: string, dsModText: string;
+  let dsChange = false;
+  if (effect1Val) {
+    effect1Text = effect1;
+    dsChange = true;
+  } else {
+    effect1Text = "";
+  }
+  if (effect2Val) {
+    effect2Text = dsChange ? `、${effect2}` : effect2;
+    dsChange = true;
+  } else {
+    effect2Text = "";
+  }
+  if (dsMod) {
+    const dsModCore = dsMod > 0 ? `ds+${dsMod}` : `ds${dsMod}`;
+    dsModText = dsChange ? `、${dsModCore}` : dsModCore;
+  } else {
+    dsModText = "";
+  }
+  const result = effect1Text + effect2Text + dsModText;
+  return result ? `（${effect1Text}${effect2Text}${dsModText}）` : ""
 }

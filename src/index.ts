@@ -9,18 +9,19 @@ import {
   evalHelp,
   fuHelp,
   fuStHelp,
-  generateAttributeStatusExpr,
   negEmo,
   numToChinese,
   rcHelp,
   riHelp,
-  ruleTemplate
+  ruleTemplate,
 } from "./data";
 import {
-  reEvaluateAttributes,
+  genAttrAlias,
+  genAttrStatusExpr,
+  reEvalAttr,
   registerConfigs,
-  removeBondByIndex,
-  generateAttributeAlias
+  rmBondByIdx,
+  rollDice,
 } from "./util";
 
 function registerTemplate(ext: seal.ExtInfo) {
@@ -60,7 +61,7 @@ function commandFu(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
 // 检定
 function commandRc(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs, ext: seal.ExtInfo): seal.CmdExecuteResult {
   // Retrieve attribute aliases from config
-  const attributeAlias = generateAttributeAlias(ext);
+  const attributeAlias = genAttrAlias(ext);
   // Build aliases string for future regexp
   let aliases = "";
   for (const key in attributeAlias) {
@@ -74,7 +75,7 @@ function commandRc(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
     seal.replyToSender(ctx, msg, rcHelp);
     return seal.ext.newCmdExecuteResult(true);
   }
-  // Check
+  // Check format
   const checkStr = cmdArgs.getRestArgsFrom(1).replace(/\s+/g, '').toLowerCase();
   const checkRegExp = new RegExp(`^(${aliases})\\+(${aliases})([+-]\\d+)?$`, "i");
   // const matches = checkStr.match(/^(灵巧|洞察|力量|意志|dex|ins|mig|wlp)\+(灵巧|洞察|力量|意志|dex|ins|mig|wlp)([+-]\d+)?$/i);
@@ -83,32 +84,34 @@ function commandRc(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
     seal.replyToSender(ctx, msg, "检定格式有误，可使用 .rc help 查看使用说明");
     return seal.ext.newCmdExecuteResult(true);
   }
+  // Parsed string
   const attribute1: string = attributeAlias[matches[1]];
   const attribute2: string = attributeAlias[matches[2]];
   const modifier: string = matches[3];
-  seal.format(ctx, `{if ${attribute1}骰面 == 0 {${attribute1}骰面 = ${attribute1}骰面初始值}}`);
+  // Get attribute value
+  reEvalAttr(ctx);
   const attributeNumber1 = seal.vars.intGet(ctx, `${attribute1}骰面`)[0];
   if (!attributeNumber1) {
-    seal.replyToSender(ctx, msg, seal.format(ctx, `{$t玩家}未设置${attribute1}属性`));
+    seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置${attribute1}属性`);
     return seal.ext.newCmdExecuteResult(true);
   }
-  seal.format(ctx, `{if ${attribute2}骰面 == 0 {${attribute2}骰面 = ${attribute2}骰面初始值}}`);
   const attributeNumber2 = seal.vars.intGet(ctx, `${attribute2}骰面`)[0];
   if (!attributeNumber2) {
-    seal.replyToSender(ctx, msg, seal.format(ctx, `{$t玩家}未设置${attribute2}属性`));
+    seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置${attribute2}属性`);
     return seal.ext.newCmdExecuteResult(true);
   }
   const modifierNumber = modifier ? Number(modifier) : 0;
-  const roll1 = Number(seal.format(ctx, `{d${attributeNumber1}}`));
-  const roll2 = Number(seal.format(ctx, `{d${attributeNumber2}}`));
+  // Roll
+  const roll1 = rollDice(attributeNumber1);
+  const roll2 = rollDice(attributeNumber2);
   const result = roll1 + roll2 + modifierNumber;
   const hr = roll1 > roll2 ? roll1 : roll2;
   const fumble = roll1 === 1 && roll2 === 1;
   const criticalSuccess = roll1 === roll2 && roll1 >= 6;
   seal.replyToSender(ctx, msg,
     seal.vars.strGet(ctx, "$t玩家")[0] + `的${attribute1}+${attribute2}${modifier ? modifier : ""}检定结果为：` +
-    `d${attributeNumber1}` + seal.format(ctx, generateAttributeStatusExpr(attribute1)) +
-    `+d${attributeNumber2}` + seal.format(ctx, generateAttributeStatusExpr(attribute2)) +
+    `d${attributeNumber1}` + genAttrStatusExpr(ctx, attribute1) +
+    `+d${attributeNumber2}` + genAttrStatusExpr(ctx, attribute2) +
     `${modifier ? modifier : ""}=` +
     `[${roll1}+${roll2}${modifier ? modifier : ""}]=${result} ` +
     `${fumble ? "大失败！" : ""}${criticalSuccess ? "大成功！" : ""}\n` +
@@ -128,29 +131,29 @@ function commandRi(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
     seal.replyToSender(ctx, msg, "先攻检定的额外修正值格式错误，可以使用 .ri help 查看使用说明");
     return seal.ext.newCmdExecuteResult(true);
   }
-  seal.format(ctx, `{if 敏捷骰面 == 0 {敏捷骰面 = 敏捷骰面初始值}}`);
+  // Get attribute value
+  reEvalAttr(ctx);
   const dexNumber = seal.vars.intGet(ctx, `敏捷骰面`)[0];
   if (!dexNumber) {
-    seal.replyToSender(ctx, msg, seal.format(ctx, `{$t玩家}未设置敏捷属性`));
+    seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置敏捷属性`);
     return seal.ext.newCmdExecuteResult(true);
   }
-  seal.format(ctx, `{if 感知骰面 == 0 {感知骰面 = 感知骰面初始值}}`);
   const insNumber = seal.vars.intGet(ctx, `感知骰面`)[0];
   if (!insNumber) {
-    seal.replyToSender(ctx, msg, seal.format(ctx, `{$t玩家}未设置感知属性`));
+    seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置感知属性`);
     return seal.ext.newCmdExecuteResult(true);
   }
   const modifierNumber = modifier ? Number(modifier) : 0;
-  const dexRoll = Number(seal.format(ctx, `{d${dexNumber}}`));
-  const insRoll = Number(seal.format(ctx, `{d${insNumber}}`));
+  const dexRoll = rollDice(dexNumber);
+  const insRoll = rollDice(insNumber);
   const im = seal.vars.intGet(ctx, "先攻修改值")[0];
   const result = dexRoll + insRoll + modifierNumber + im;
   const fumble = dexRoll === 1 && insRoll === 1;
   const criticalSuccess = dexRoll === insRoll && dexRoll >= 6;
   seal.replyToSender(ctx, msg,
     seal.vars.strGet(ctx, "$t玩家")[0] + `的先攻检定结果为：` +
-    `d${dexNumber}` + seal.format(ctx, generateAttributeStatusExpr("敏捷")) +
-    `+d${insNumber}` + seal.format(ctx, generateAttributeStatusExpr("感知")) +
+    `d${dexNumber}` + genAttrStatusExpr(ctx, "敏捷") +
+    `+d${insNumber}` + genAttrStatusExpr(ctx, "感知") +
     `${im >= 0 ? `+${im}（先攻修改）` : `${im}（先攻修改）`}${modifier ? modifier : ""}=` +
     `[${dexRoll}+${insRoll}${im >= 0 ? `+${im}` : `${im}`}${modifier ? modifier : ""}]=${result} ` +
     `${fumble ? "大失败！" : ""}${criticalSuccess ? "大成功！" : ""}`
@@ -175,12 +178,12 @@ function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
       const effect = seal.vars.intGet(ctx, command)[0];
       if (effect) {
         seal.vars.intSet(ctx, command, 0);
-        reEvaluateAttributes(ctx);
+        reEvalAttr(ctx);
         seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `的${command}状态消退了……`);
         return seal.ext.newCmdExecuteResult(true);
       } else {
         seal.vars.intSet(ctx, command, 1);
-        reEvaluateAttributes(ctx);
+        reEvalAttr(ctx);
         seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `进入${command}状态了……`);
         return seal.ext.newCmdExecuteResult(true);
       }
@@ -192,7 +195,7 @@ function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
         return seal.ext.newCmdExecuteResult(true);
       }
       seal.vars.intSet(ctx, effect, 1);
-      reEvaluateAttributes(ctx);
+      reEvalAttr(ctx);
       seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `进入${effect}状态了……`);
       return seal.ext.newCmdExecuteResult(true);
     }
@@ -203,7 +206,7 @@ function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
         return seal.ext.newCmdExecuteResult(true);
       }
       seal.vars.intSet(ctx, effect, 0);
-      reEvaluateAttributes(ctx);
+      reEvalAttr(ctx);
       seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `的${effect}状态消退了……`);
       return seal.ext.newCmdExecuteResult(true);
     }
@@ -211,7 +214,7 @@ function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
       for (const effect of ["迟缓", "眩晕", "虚弱", "动摇", "激怒", "中毒"]) {
         seal.vars.intSet(ctx, effect, 0);
       }
-      reEvaluateAttributes(ctx);
+      reEvalAttr(ctx);
       seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `的全部状态消退了……`);
       return seal.ext.newCmdExecuteResult(true);
     }
@@ -225,7 +228,7 @@ function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
 // 属性增减
 function commandDs(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs, ext: seal.ExtInfo): seal.CmdExecuteResult {
   // Retrieve attribute aliases from config
-  const attributeAlias = generateAttributeAlias(ext);
+  const attributeAlias = genAttrAlias(ext);
   // Build aliases string for future regexp
   let aliases = "";
   for (const key in attributeAlias) {
@@ -247,7 +250,7 @@ function commandDs(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
       seal.vars.intSet(ctx, "感知骰面增减值", 0);
       seal.vars.intSet(ctx, "力量骰面增减值", 0);
       seal.vars.intSet(ctx, "意志骰面增减值", 0);
-      reEvaluateAttributes(ctx);
+      reEvalAttr(ctx);
       seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + "全部属性骰的临时变动重置了");
       return seal.ext.newCmdExecuteResult(true);
     }
@@ -259,7 +262,7 @@ function commandDs(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
     }
     attribute = attributeAlias[attribute];
     seal.vars.intSet(ctx, `${attribute}骰面增减值`, 0);
-    reEvaluateAttributes(ctx);
+    reEvalAttr(ctx);
     seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `${attribute}属性骰的临时变动重置了`);
     return seal.ext.newCmdExecuteResult(true);
   }
@@ -277,14 +280,14 @@ function commandDs(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
   let ds = seal.vars.intGet(ctx, `${attribute}骰面增减值`)[0];
   ds += Number(modifier);
   seal.vars.intSet(ctx, `${attribute}骰面增减值`, ds);
-  reEvaluateAttributes(ctx);
+  reEvalAttr(ctx);
   seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `${attribute}属性骰临时${modifier}`);
   return seal.ext.newCmdExecuteResult(true);
 }
 
 // 核算属性
 function commandEval(ctx: seal.MsgContext, msg: seal.Message): seal.CmdExecuteResult {
-  reEvaluateAttributes(ctx);
+  reEvalAttr(ctx);
   seal.replyToSender(ctx, msg, "属性核算完毕");
   return seal.ext.newCmdExecuteResult(true);
 }
@@ -335,7 +338,7 @@ function commandBond(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
         seal.replyToSender(ctx, msg, `找不到要遗忘的目标羁绊：${target}`);
         return seal.ext.newCmdExecuteResult(true);
       }
-      removeBondByIndex(ctx, index);
+      rmBondByIdx(ctx, index);
       if (target.match(/^[1-6]$/)) {
         seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `不再有第${target}条羁绊`);
       } else {
@@ -568,7 +571,7 @@ function main() {
   // 注册扩展
   let ext = seal.ext.find("seal-fu");
   if (!ext) {
-    ext = seal.ext.new("seal-fu", "Mint Cider", "0.2.1");
+    ext = seal.ext.new("seal-fu", "Mint Cider", "0.2.2");
     seal.ext.register(ext);
     registerConfigs(ext);
     registerTemplate(ext);
