@@ -41,15 +41,18 @@ export function genAttrAlias(ext: seal.ExtInfo): {
   return result;
 }
 
-export function reEvalAttr(ctx: seal.MsgContext) {
+export function reEvalAttr(ctx: seal.MsgContext, ext: seal.ExtInfo) {
   for (const attribute of ["敏捷", "感知", "力量", "意志"]) {
+    // Dice size modification
     let dsMod = seal.vars.intGet(ctx, `${attribute}骰面增减值`)[0];
+    // Status effects
     if (seal.vars.intGet(ctx, attributeEffects[attribute][0])[0]) {
       dsMod -= 1;
     }
     if (seal.vars.intGet(ctx, attributeEffects[attribute][1])[0]) {
       dsMod -= 1;
     }
+    // Evaluate
     let ds = seal.vars.intGet(ctx, `${attribute}骰面初始值`)[0];
     if (ds == 0) {
       continue;
@@ -61,7 +64,39 @@ export function reEvalAttr(ctx: seal.MsgContext) {
     if (ds > 12) {
       ds = 12;
     }
+    // Store
     seal.vars.intSet(ctx, `${attribute}骰面`, ds);
+  }
+  // Retrieve attribute aliases from config
+  const attributeAlias = genAttrAlias(ext);
+  for (const defense of ["物防", "魔防"]) {
+    const [intVal, isInt] = seal.vars.intGet(ctx, defense);
+    // Fixed defense
+    if (isInt) {
+      seal.vars.intSet(ctx, `${defense}计算值`, intVal);
+      continue;
+    }
+    // Defense expression
+    const [strVal, isStr] = seal.vars.strGet(ctx, defense);
+    if (isStr) {
+      // Build aliases string for regexp
+      let aliases = "";
+      for (const key in attributeAlias) {
+        aliases += `${key}|`;
+      }
+      aliases = aliases.slice(0, -1);
+      const defenseRegExp = new RegExp(`^(${aliases})([+-]\\d+)?$`, "i");
+      const matches = strVal.replace(/\s+/g, '').toLowerCase().match(defenseRegExp);
+      if (!matches) {
+        seal.vars.strSet(ctx, `${defense}计算值`, `${defense}表达式错误`);
+        continue;
+      }
+      const attributeVal = seal.vars.intGet(ctx, `${attributeAlias[matches[1]]}骰面`)[0];
+      const modifier: string = matches[2];
+      const modifierNumber = modifier ? Number(modifier) : 0;
+      const defenseVal = attributeVal + modifierNumber;
+      seal.vars.intSet(ctx, `${defense}计算值`, defenseVal);
+    }
   }
   seal.setPlayerGroupCard(ctx, ctx.player.autoSetNameTemplate);
 }

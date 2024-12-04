@@ -89,7 +89,7 @@ function commandRc(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
   const attribute2: string = attributeAlias[matches[2]];
   const modifier: string = matches[3];
   // Get attribute value
-  reEvalAttr(ctx);
+  reEvalAttr(ctx, ext);
   const attributeNumber1 = seal.vars.intGet(ctx, `${attribute1}骰面`)[0];
   if (!attributeNumber1) {
     seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置${attribute1}属性`);
@@ -121,7 +121,7 @@ function commandRc(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
 }
 
 // 先攻检定
-function commandRi(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs): seal.CmdExecuteResult {
+function commandRi(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs, ext: seal.ExtInfo): seal.CmdExecuteResult {
   const modifier = cmdArgs.getArgN(1);
   if (modifier === "help") {
     seal.replyToSender(ctx, msg, riHelp);
@@ -132,7 +132,7 @@ function commandRi(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
     return seal.ext.newCmdExecuteResult(true);
   }
   // Get attribute value
-  reEvalAttr(ctx);
+  reEvalAttr(ctx, ext);
   const dexNumber = seal.vars.intGet(ctx, `敏捷骰面`)[0];
   if (!dexNumber) {
     seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置敏捷属性`);
@@ -162,7 +162,7 @@ function commandRi(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
 }
 
 // 状态效果
-function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs): seal.CmdExecuteResult {
+function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs, ext: seal.ExtInfo): seal.CmdExecuteResult {
   const command = cmdArgs.getArgN(1);
   switch (command) {
     case "help": {
@@ -178,12 +178,12 @@ function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
       const effect = seal.vars.intGet(ctx, command)[0];
       if (effect) {
         seal.vars.intSet(ctx, command, 0);
-        reEvalAttr(ctx);
+        reEvalAttr(ctx, ext);
         seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `的${command}状态消退了……`);
         return seal.ext.newCmdExecuteResult(true);
       } else {
         seal.vars.intSet(ctx, command, 1);
-        reEvalAttr(ctx);
+        reEvalAttr(ctx, ext);
         seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `进入${command}状态了……`);
         return seal.ext.newCmdExecuteResult(true);
       }
@@ -195,7 +195,7 @@ function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
         return seal.ext.newCmdExecuteResult(true);
       }
       seal.vars.intSet(ctx, effect, 1);
-      reEvalAttr(ctx);
+      reEvalAttr(ctx, ext);
       seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `进入${effect}状态了……`);
       return seal.ext.newCmdExecuteResult(true);
     }
@@ -206,7 +206,7 @@ function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
         return seal.ext.newCmdExecuteResult(true);
       }
       seal.vars.intSet(ctx, effect, 0);
-      reEvalAttr(ctx);
+      reEvalAttr(ctx, ext);
       seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `的${effect}状态消退了……`);
       return seal.ext.newCmdExecuteResult(true);
     }
@@ -214,7 +214,7 @@ function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
       for (const effect of ["迟缓", "眩晕", "虚弱", "动摇", "激怒", "中毒"]) {
         seal.vars.intSet(ctx, effect, 0);
       }
-      reEvalAttr(ctx);
+      reEvalAttr(ctx, ext);
       seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `的全部状态消退了……`);
       return seal.ext.newCmdExecuteResult(true);
     }
@@ -250,7 +250,7 @@ function commandDs(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
       seal.vars.intSet(ctx, "感知骰面增减值", 0);
       seal.vars.intSet(ctx, "力量骰面增减值", 0);
       seal.vars.intSet(ctx, "意志骰面增减值", 0);
-      reEvalAttr(ctx);
+      reEvalAttr(ctx, ext);
       seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + "全部属性骰的临时变动重置了");
       return seal.ext.newCmdExecuteResult(true);
     }
@@ -262,7 +262,7 @@ function commandDs(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
     }
     attribute = attributeAlias[attribute];
     seal.vars.intSet(ctx, `${attribute}骰面增减值`, 0);
-    reEvalAttr(ctx);
+    reEvalAttr(ctx, ext);
     seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `${attribute}属性骰的临时变动重置了`);
     return seal.ext.newCmdExecuteResult(true);
   }
@@ -280,14 +280,14 @@ function commandDs(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
   let ds = seal.vars.intGet(ctx, `${attribute}骰面增减值`)[0];
   ds += Number(modifier);
   seal.vars.intSet(ctx, `${attribute}骰面增减值`, ds);
-  reEvalAttr(ctx);
+  reEvalAttr(ctx, ext);
   seal.replyToSender(ctx, msg, seal.vars.strGet(ctx, "$t玩家")[0] + `${attribute}属性骰临时${modifier}`);
   return seal.ext.newCmdExecuteResult(true);
 }
 
 // 核算属性
-function commandEval(ctx: seal.MsgContext, msg: seal.Message): seal.CmdExecuteResult {
-  reEvalAttr(ctx);
+function commandEval(ctx: seal.MsgContext, msg: seal.Message, _: seal.CmdArgs, ext: seal.ExtInfo): seal.CmdExecuteResult {
+  reEvalAttr(ctx, ext);
   seal.replyToSender(ctx, msg, "属性核算完毕");
   return seal.ext.newCmdExecuteResult(true);
 }
@@ -567,11 +567,21 @@ function registerCommand(ext: seal.ExtInfo, key: string, help: string, func: (ct
   ext.cmdMap[key] = cmd;
 }
 
+function stCallBack(ctx: seal.MsgContext, msg: seal.Message, ext: seal.ExtInfo) {
+  if (seal.vars.strGet(ctx, "$tSystem")[0] !== "fu") {
+    return;
+  }
+  if (!msg.message.startsWith(".st")) {
+    return;
+  }
+  reEvalAttr(ctx, ext);
+}
+
 function main() {
   // 注册扩展
   let ext = seal.ext.find("seal-fu");
   if (!ext) {
-    ext = seal.ext.new("seal-fu", "Mint Cider", "0.2.2");
+    ext = seal.ext.new("seal-fu", "Mint Cider", "0.3.0");
     seal.ext.register(ext);
     registerConfigs(ext);
     registerTemplate(ext);
@@ -583,6 +593,7 @@ function main() {
     registerCommand(ext, "eval", evalHelp, commandEval);
     registerCommand(ext, "bond", bondHelp, commandBond);
     registerCommand(ext, "clk", clkHelp, commandClk);
+    ext.onCommandReceived = (ctx, msg, _) => stCallBack(ctx, msg, ext);
   }
 }
 
