@@ -599,7 +599,7 @@ function main() {
   // 注册扩展
   let ext = seal.ext.find("seal-fu");
   if (!ext) {
-    ext = seal.ext.new("seal-fu", "Mint Cider", "0.3.0");
+    ext = seal.ext.new("seal-fu", "Mint Cider", "1.0.0");
     seal.ext.register(ext);
     registerConfigs(ext);
     registerTemplate(ext);

@@ -1,21 +1,22 @@
 // ==UserScript==
 // @name         最终物语规则
 // @author       Mint Cider
-// @version      0.3.0
+// @version      1.0.0
 // @description  为海豹添加最终物语规则。详细使用说明见项目主页 README。
-// @timestamp    1733333000
+// @timestamp    1770717300
 // @license      MIT
 // @homepageURL  https://github.com/MintCider/seal-fu
 // @updateUrl    https://github.com/MintCider/seal-fu/releases/latest/download/seal-fu.js
 // @sealVersion  >=1.2.0-0
 // ==/UserScript==
 
-// # v0.3.0 更新日志
+// # v1.0.0 更新日志
 //
 // ## ⚠️注意⚠️
 //
-// 由于大量术语发生变动，导致人物卡的数据存储格式改变，从 `v0.2.0` 之前版本升级而来的话，会出现数据不匹配。可以通过 `.st clr` 清空旧人物卡属性，参考最新术语翻译，重新创建人物卡。
+// 本版本依据官方中文版规则书（2026.02.06 版）更新了部分术语翻译，导致人物卡的数据存储格式改变。从旧版本升级而来的话，会出现数据不匹配。可以通过 `.st clr` 清空旧人物卡属性，参考最新术语翻译，重新创建人物卡。
 //
 // ## 功能
 //
-// - 增加物防魔防值联动属性骰，并在属性骰因状态效果等原因变动时，自动更新物防魔防值的功能（详见 README）。
+// - 依据官方中文版规则书（2026.02.06 版），更新术语翻译。
+// - `.rc` 命令支持在属性名后直接指定骰面数，适用于未录入角色卡的情况（例如：`.rc mig10+mig10-2`）。

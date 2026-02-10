@@ -60,8 +60,8 @@ export const ruleTemplate = {
   "name": "fu",
   "fullName": "最终物语",
   "authors": ["Mint Cider"],
-  "version": "0.3.0",
-  "updatedTime": "2024.12.05",
+  "version": "1.0.0",
+  "updatedTime": "2026.02.10",
   "templateVer": "1.0",
 
   // .set 相关内容，使用.set fish开启，切6面骰，并提示enableTip中的内容
@@ -120,17 +120,6 @@ export const ruleTemplate = {
     },
   },
 
-  // 默认值
-  // "defaults": {
-  //   "上工": 5,
-  // },
-  // 默认值 - 计算属性，如闪避为“敏捷 / 2 ”
-  // "defaultsComputed": {
-  //   // 注意: 目前(v1.2.4)有一些限制，showAs中的项，千万不能有默认值
-  //   // 此外defaults中的内容也不能出现在defaultsComputed里
-  //   "生命值上限": "脸皮 * 2",
-  // },
-  // 同义词，存卡和设置属性时，所有右边的词会被转换为左边的词，不分大小写(sAN视同San/san)
   "alias": {
     "生命值": ["hp", "hit point", "hit points"],
     "生命值上限": ["hpmax"],
@@ -148,16 +137,6 @@ export const ruleTemplate = {
     "力量骰面初始值": ["mig", "might", "力量"],
     "意志骰面初始值": ["wlp", "willpower", "意志"],
   },
-
-  // 可自定义词组，未实装
-  // "textMap": {
-  //   "fish-test": {
-  //     "设置测试_成功": [
-  //       ["设置完成", 1]
-  //     ]
-  //   }
-  // },
-  // "textMapHelpInfo": null
 }
 
 export const fuHelp = "最终物语规则相关指令：\n\n" +
