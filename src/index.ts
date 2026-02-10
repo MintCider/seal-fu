@@ -35,11 +35,11 @@ function registerTemplate(ext: seal.ExtInfo) {
     template["alias"]["物资点上限"] = JSON.parse(seal.ext.getStringConfig(ext, "物资点上限别名"));
     template["alias"]["物语点"] = JSON.parse(seal.ext.getStringConfig(ext, "物语点别名"));
     template["alias"]["金币"] = JSON.parse(seal.ext.getStringConfig(ext, "金币别名"));
-    template["alias"]["先攻修改值"] = JSON.parse(seal.ext.getStringConfig(ext, "先攻修改值别名"));
+    template["alias"]["先攻修正值"] = JSON.parse(seal.ext.getStringConfig(ext, "先攻修正值别名"));
     template["alias"]["物防"] = JSON.parse(seal.ext.getStringConfig(ext, "物防别名"));
     template["alias"]["魔防"] = JSON.parse(seal.ext.getStringConfig(ext, "魔防别名"));
     template["alias"]["敏捷骰面初始值"] = JSON.parse(seal.ext.getStringConfig(ext, "敏捷骰面初始值别名"));
-    template["alias"]["感知骰面初始值"] = JSON.parse(seal.ext.getStringConfig(ext, "感知骰面初始值别名"));
+    template["alias"]["洞察骰面初始值"] = JSON.parse(seal.ext.getStringConfig(ext, "洞察骰面初始值别名"));
     template["alias"]["力量骰面初始值"] = JSON.parse(seal.ext.getStringConfig(ext, "力量骰面初始值别名"));
     template["alias"]["意志骰面初始值"] = JSON.parse(seal.ext.getStringConfig(ext, "意志骰面初始值别名"));
     seal.gameSystem.newTemplate(JSON.stringify(ruleTemplate));
@@ -77,28 +77,46 @@ function commandRc(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
   }
   // Check format
   const checkStr = cmdArgs.getRestArgsFrom(1).replace(/\s+/g, '').toLowerCase();
-  const checkRegExp = new RegExp(`^(${aliases})\\+(${aliases})([+-]\\d+)?$`, "i");
-  // const matches = checkStr.match(/^(灵巧|洞察|力量|意志|dex|ins|mig|wlp)\+(灵巧|洞察|力量|意志|dex|ins|mig|wlp)([+-]\d+)?$/i);
+  const checkRegExp = new RegExp(`^((?:${aliases})\\d*?)\\+((?:${aliases})\\d*?)([+-]\\d+)?$`, "i");
   const matches = checkStr.match(checkRegExp);
   if (!matches) {
     seal.replyToSender(ctx, msg, "检定格式有误，可使用 .rc help 查看使用说明");
     return seal.ext.newCmdExecuteResult(true);
   }
-  // Parsed string
-  const attribute1: string = attributeAlias[matches[1]];
-  const attribute2: string = attributeAlias[matches[2]];
+  // Parse attribute and optional dice size
+  const attrRegExp = new RegExp(`^(${aliases})(\\d+)?$`, "i");
+  const attr1Match = matches[1].match(attrRegExp);
+  const attr2Match = matches[2].match(attrRegExp);
+  if (!attr1Match || !attr2Match) {
+    seal.replyToSender(ctx, msg, "检定格式有误，可使用 .rc help 查看使用说明");
+    return seal.ext.newCmdExecuteResult(true);
+  }
+  const attribute1: string = attributeAlias[attr1Match[1]];
+  const attribute2: string = attributeAlias[attr2Match[1]];
+  const explicitDs1 = attr1Match[2] ? Number(attr1Match[2]) : 0;
+  const explicitDs2 = attr2Match[2] ? Number(attr2Match[2]) : 0;
   const modifier: string = matches[3];
   // Get attribute value
   reEvalAttr(ctx, ext);
-  const attributeNumber1 = seal.vars.intGet(ctx, `${attribute1}骰面`)[0];
-  if (!attributeNumber1) {
-    seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置${attribute1}属性`);
-    return seal.ext.newCmdExecuteResult(true);
+  let attributeNumber1: number;
+  if (explicitDs1) {
+    attributeNumber1 = explicitDs1;
+  } else {
+    attributeNumber1 = seal.vars.intGet(ctx, `${attribute1}骰面`)[0];
+    if (!attributeNumber1) {
+      seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置${attribute1}属性`);
+      return seal.ext.newCmdExecuteResult(true);
+    }
   }
-  const attributeNumber2 = seal.vars.intGet(ctx, `${attribute2}骰面`)[0];
-  if (!attributeNumber2) {
-    seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置${attribute2}属性`);
-    return seal.ext.newCmdExecuteResult(true);
+  let attributeNumber2: number;
+  if (explicitDs2) {
+    attributeNumber2 = explicitDs2;
+  } else {
+    attributeNumber2 = seal.vars.intGet(ctx, `${attribute2}骰面`)[0];
+    if (!attributeNumber2) {
+      seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置${attribute2}属性`);
+      return seal.ext.newCmdExecuteResult(true);
+    }
   }
   const modifierNumber = modifier ? Number(modifier) : 0;
   // Roll
@@ -110,8 +128,8 @@ function commandRc(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
   const criticalSuccess = roll1 === roll2 && roll1 >= 6;
   seal.replyToSender(ctx, msg,
     seal.vars.strGet(ctx, "$t玩家")[0] + `的${attribute1}+${attribute2}${modifier ? modifier : ""}检定结果为：` +
-    `d${attributeNumber1}` + genAttrStatusExpr(ctx, attribute1) +
-    `+d${attributeNumber2}` + genAttrStatusExpr(ctx, attribute2) +
+    `d${attributeNumber1}` + (explicitDs1 ? "" : genAttrStatusExpr(ctx, attribute1)) +
+    `+d${attributeNumber2}` + (explicitDs2 ? "" : genAttrStatusExpr(ctx, attribute2)) +
     `${modifier ? modifier : ""}=` +
     `[${roll1}+${roll2}${modifier ? modifier : ""}]=${result} ` +
     `${fumble ? "大失败！" : ""}${criticalSuccess ? "大成功！" : ""}\n` +
@@ -138,30 +156,30 @@ function commandRi(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
     seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置敏捷属性`);
     return seal.ext.newCmdExecuteResult(true);
   }
-  const insNumber = seal.vars.intGet(ctx, `感知骰面`)[0];
+  const insNumber = seal.vars.intGet(ctx, `洞察骰面`)[0];
   if (!insNumber) {
-    seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置感知属性`);
+    seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置洞察属性`);
     return seal.ext.newCmdExecuteResult(true);
   }
   const modifierNumber = modifier ? Number(modifier) : 0;
   const dexRoll = rollDice(dexNumber);
   const insRoll = rollDice(insNumber);
-  const im = seal.vars.intGet(ctx, "先攻修改值")[0];
+  const im = seal.vars.intGet(ctx, "先攻修正值")[0];
   const result = dexRoll + insRoll + modifierNumber + im;
   const fumble = dexRoll === 1 && insRoll === 1;
   const criticalSuccess = dexRoll === insRoll && dexRoll >= 6;
   seal.replyToSender(ctx, msg,
     seal.vars.strGet(ctx, "$t玩家")[0] + `的先攻检定结果为：` +
     `d${dexNumber}` + genAttrStatusExpr(ctx, "敏捷") +
-    `+d${insNumber}` + genAttrStatusExpr(ctx, "感知") +
-    `${im >= 0 ? `+${im}（先攻修改）` : `${im}（先攻修改）`}${modifier ? modifier : ""}=` +
+    `+d${insNumber}` + genAttrStatusExpr(ctx, "洞察") +
+    `${im >= 0 ? `+${im}（先攻修正）` : `${im}（先攻修正）`}${modifier ? modifier : ""}=` +
     `[${dexRoll}+${insRoll}${im >= 0 ? `+${im}` : `${im}`}${modifier ? modifier : ""}]=${result} ` +
     `${fumble ? "大失败！" : ""}${criticalSuccess ? "大成功！" : ""}`
   );
   return seal.ext.newCmdExecuteResult(true);
 }
 
-// 状态效果
+// 异常状态
 function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs, ext: seal.ExtInfo): seal.CmdExecuteResult {
   const command = cmdArgs.getArgN(1);
   switch (command) {
@@ -191,7 +209,7 @@ function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
     case "add": {
       const effect = cmdArgs.getArgN(2);
       if (!["迟缓", "眩晕", "虚弱", "动摇", "激怒", "中毒"].includes(effect)) {
-        seal.replyToSender(ctx, msg, "状态效果有误，可使用 .buff help 查看使用说明");
+        seal.replyToSender(ctx, msg, "异常状态有误，可使用 .buff help 查看使用说明");
         return seal.ext.newCmdExecuteResult(true);
       }
       seal.vars.intSet(ctx, effect, 1);
@@ -202,7 +220,7 @@ function commandBuff(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdA
     case "del": {
       const effect = cmdArgs.getArgN(2);
       if (!["迟缓", "眩晕", "虚弱", "动摇", "激怒", "中毒"].includes(effect)) {
-        seal.replyToSender(ctx, msg, "状态效果有误，可使用 .buff help 查看使用说明");
+        seal.replyToSender(ctx, msg, "异常状态有误，可使用 .buff help 查看使用说明");
         return seal.ext.newCmdExecuteResult(true);
       }
       seal.vars.intSet(ctx, effect, 0);
@@ -247,7 +265,7 @@ function commandDs(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
     let attribute = cmdArgs.getArgN(2).toLowerCase();
     if (attribute === "all") {
       seal.vars.intSet(ctx, "敏捷骰面增减值", 0);
-      seal.vars.intSet(ctx, "感知骰面增减值", 0);
+      seal.vars.intSet(ctx, "洞察骰面增减值", 0);
       seal.vars.intSet(ctx, "力量骰面增减值", 0);
       seal.vars.intSet(ctx, "意志骰面增减值", 0);
       reEvalAttr(ctx, ext);
@@ -581,7 +599,7 @@ function main() {
   // 注册扩展
   let ext = seal.ext.find("seal-fu");
   if (!ext) {
-    ext = seal.ext.new("seal-fu", "Mint Cider", "0.3.0");
+    ext = seal.ext.new("seal-fu", "Mint Cider", "1.0.0");
     seal.ext.register(ext);
     registerConfigs(ext);
     registerTemplate(ext);

@@ -9,11 +9,11 @@ export function registerConfigs(ext: seal.ExtInfo) {
   seal.ext.registerStringConfig(ext, "物资点上限别名", `["ipmax"]`);
   seal.ext.registerStringConfig(ext, "物语点别名", `["fp", "fabula point", "fabula points"]`);
   seal.ext.registerStringConfig(ext, "金币别名", `["z", "zenit"]`);
-  seal.ext.registerStringConfig(ext, "先攻修改值别名", `["im", "initiative modifier", "先攻"]`);
+  seal.ext.registerStringConfig(ext, "先攻修正值别名", `["im", "initiative modifier", "先攻"]`);
   seal.ext.registerStringConfig(ext, "物防别名", `["pd", "df", "defense", "物理防御"]`);
   seal.ext.registerStringConfig(ext, "魔防别名", `["md", "magical defense", "魔法防御"]`);
   seal.ext.registerStringConfig(ext, "敏捷骰面初始值别名", `["dex", "dexterity", "敏捷"]`);
-  seal.ext.registerStringConfig(ext, "感知骰面初始值别名", `["ins", "insight", "感知"]`);
+  seal.ext.registerStringConfig(ext, "洞察骰面初始值别名", `["ins", "insight", "洞察"]`);
   seal.ext.registerStringConfig(ext, "力量骰面初始值别名", `["mig", "might", "力量"]`);
   seal.ext.registerStringConfig(ext, "意志骰面初始值别名", `["wlp", "willpower", "意志"]`);
 }
@@ -23,14 +23,14 @@ export function genAttrAlias(ext: seal.ExtInfo): {
 } {
   const result: { [key: string]: string } = {};
   result["敏捷"] = "敏捷";
-  result["感知"] = "感知";
+  result["洞察"] = "洞察";
   result["力量"] = "力量";
   result["意志"] = "意志";
   for (const alias of JSON.parse(seal.ext.getStringConfig(ext, "敏捷骰面初始值别名"))) {
     result[alias] = "敏捷";
   }
-  for (const alias of JSON.parse(seal.ext.getStringConfig(ext, "感知骰面初始值别名"))) {
-    result[alias] = "感知";
+  for (const alias of JSON.parse(seal.ext.getStringConfig(ext, "洞察骰面初始值别名"))) {
+    result[alias] = "洞察";
   }
   for (const alias of JSON.parse(seal.ext.getStringConfig(ext, "力量骰面初始值别名"))) {
     result[alias] = "力量";
@@ -42,7 +42,7 @@ export function genAttrAlias(ext: seal.ExtInfo): {
 }
 
 export function reEvalAttr(ctx: seal.MsgContext, ext: seal.ExtInfo) {
-  for (const attribute of ["敏捷", "感知", "力量", "意志"]) {
+  for (const attribute of ["敏捷", "洞察", "力量", "意志"]) {
     // Dice size modification
     let dsMod = seal.vars.intGet(ctx, `${attribute}骰面增减值`)[0];
     // Status effects
