@@ -77,28 +77,46 @@ function commandRc(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
   }
   // Check format
   const checkStr = cmdArgs.getRestArgsFrom(1).replace(/\s+/g, '').toLowerCase();
-  const checkRegExp = new RegExp(`^(${aliases})\\+(${aliases})([+-]\\d+)?$`, "i");
-  // const matches = checkStr.match(/^(灵巧|洞察|力量|意志|dex|ins|mig|wlp)\+(灵巧|洞察|力量|意志|dex|ins|mig|wlp)([+-]\d+)?$/i);
+  const checkRegExp = new RegExp(`^((?:${aliases})\\d*?)\\+((?:${aliases})\\d*?)([+-]\\d+)?$`, "i");
   const matches = checkStr.match(checkRegExp);
   if (!matches) {
     seal.replyToSender(ctx, msg, "检定格式有误，可使用 .rc help 查看使用说明");
     return seal.ext.newCmdExecuteResult(true);
   }
-  // Parsed string
-  const attribute1: string = attributeAlias[matches[1]];
-  const attribute2: string = attributeAlias[matches[2]];
+  // Parse attribute and optional dice size
+  const attrRegExp = new RegExp(`^(${aliases})(\\d+)?$`, "i");
+  const attr1Match = matches[1].match(attrRegExp);
+  const attr2Match = matches[2].match(attrRegExp);
+  if (!attr1Match || !attr2Match) {
+    seal.replyToSender(ctx, msg, "检定格式有误，可使用 .rc help 查看使用说明");
+    return seal.ext.newCmdExecuteResult(true);
+  }
+  const attribute1: string = attributeAlias[attr1Match[1]];
+  const attribute2: string = attributeAlias[attr2Match[1]];
+  const explicitDs1 = attr1Match[2] ? Number(attr1Match[2]) : 0;
+  const explicitDs2 = attr2Match[2] ? Number(attr2Match[2]) : 0;
   const modifier: string = matches[3];
   // Get attribute value
   reEvalAttr(ctx, ext);
-  const attributeNumber1 = seal.vars.intGet(ctx, `${attribute1}骰面`)[0];
-  if (!attributeNumber1) {
-    seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置${attribute1}属性`);
-    return seal.ext.newCmdExecuteResult(true);
+  let attributeNumber1: number;
+  if (explicitDs1) {
+    attributeNumber1 = explicitDs1;
+  } else {
+    attributeNumber1 = seal.vars.intGet(ctx, `${attribute1}骰面`)[0];
+    if (!attributeNumber1) {
+      seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置${attribute1}属性`);
+      return seal.ext.newCmdExecuteResult(true);
+    }
   }
-  const attributeNumber2 = seal.vars.intGet(ctx, `${attribute2}骰面`)[0];
-  if (!attributeNumber2) {
-    seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置${attribute2}属性`);
-    return seal.ext.newCmdExecuteResult(true);
+  let attributeNumber2: number;
+  if (explicitDs2) {
+    attributeNumber2 = explicitDs2;
+  } else {
+    attributeNumber2 = seal.vars.intGet(ctx, `${attribute2}骰面`)[0];
+    if (!attributeNumber2) {
+      seal.replyToSender(ctx, msg, `${seal.vars.strGet(ctx, "$t玩家")[0]}未设置${attribute2}属性`);
+      return seal.ext.newCmdExecuteResult(true);
+    }
   }
   const modifierNumber = modifier ? Number(modifier) : 0;
   // Roll
@@ -110,8 +128,8 @@ function commandRc(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArg
   const criticalSuccess = roll1 === roll2 && roll1 >= 6;
   seal.replyToSender(ctx, msg,
     seal.vars.strGet(ctx, "$t玩家")[0] + `的${attribute1}+${attribute2}${modifier ? modifier : ""}检定结果为：` +
-    `d${attributeNumber1}` + genAttrStatusExpr(ctx, attribute1) +
-    `+d${attributeNumber2}` + genAttrStatusExpr(ctx, attribute2) +
+    `d${attributeNumber1}` + (explicitDs1 ? "" : genAttrStatusExpr(ctx, attribute1)) +
+    `+d${attributeNumber2}` + (explicitDs2 ? "" : genAttrStatusExpr(ctx, attribute2)) +
     `${modifier ? modifier : ""}=` +
     `[${roll1}+${roll2}${modifier ? modifier : ""}]=${result} ` +
     `${fumble ? "大失败！" : ""}${criticalSuccess ? "大成功！" : ""}\n` +

@@ -198,10 +198,12 @@ export const fuStHelp = "最终物语相关人物卡属性：\n\n" +
 export const rcHelp = "最终物语检定指令：\n\n" +
   ".rc <属性 1>+<属性 2>+<修正值>\n\n" +
   "支持的属性为：敏捷、洞察、力量、意志，以及任何对应四维属性的属性别名（例如：dex、ins、mig、wlp），不区分大小写\n" +
+  "属性后可以直接跟数字指定骰面数，适用于未录入角色卡的情况（例如：mig10+mig10）\n" +
   "支持的修正值为：整数\n" +
   "例子：\n" +
   ".rc 敏捷+洞察+1\n" +
-  ".rc mig+wlp-2"
+  ".rc mig+wlp-2\n" +
+  ".rc mig10+mig10"
 
 export const riHelp = "最终物语先攻检定指令：\n\n" +
   ".ri [修正值]\n\n" +
